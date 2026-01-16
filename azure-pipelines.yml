@@ -1,0 +1,46 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  terraformVersion: '1.13.5'
+
+steps:
+
+# 1️⃣ Install Terraform
+- task: TerraformInstaller@1
+  displayName: Install Terraform
+  inputs:
+    terraformVersion: $(terraformVersion)
+
+# 2️⃣ Terraform Init
+- task: TerraformTaskV4@4
+  displayName: Terraform Init
+  inputs:
+    provider: azurerm
+    command: init
+    backendServiceArm: 'Test_Connection'
+    backendAzureRmResourceGroupName: 'tfstate-rg'
+    backendAzureRmStorageAccountName: 'tfstate1345'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: 'dev.terraform.tfstate'
+
+# 3️⃣ Terraform Plan
+- task: TerraformTaskV4@4
+  displayName: Terraform Plan
+  inputs:
+    provider: azurerm
+    command: plan
+    environmentServiceNameAzureRM: 'Test_Connection'
+    commandOptions: '-var-file=terraform.tfvars'
+
+# 4️⃣ Terraform Apply
+- task: TerraformTaskV4@4
+  displayName: Terraform Apply
+  inputs:
+    provider: azurerm
+    command: apply
+    environmentServiceNameAzureRM: 'Test_Connection'
+    commandOptions: '-auto-approve -var-file=terraform.tfvars'
